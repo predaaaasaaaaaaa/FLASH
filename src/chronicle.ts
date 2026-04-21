@@ -22,16 +22,20 @@ export interface GitCommitPayload {
 
 export class ChronologicalEngine {
   private events: ChronoEvent[] = [];
-  private storePath: string;
+  private storePath: string | null;
 
-  constructor() {
-    const flashDir = path.join(process.cwd(), '.flash');
-    this.storePath = path.join(flashDir, 'history.json');
+  constructor(storePath?: string | null) {
+    if (storePath === undefined) {
+      const flashDir = path.join(process.cwd(), '.flash');
+      this.storePath = path.join(flashDir, 'history.json');
+    } else {
+      this.storePath = storePath;
+    }
     this.loadEvents();
   }
 
   private loadEvents() {
-    if (fs.existsSync(this.storePath)) {
+    if (this.storePath && fs.existsSync(this.storePath)) {
       try {
         const data = fs.readFileSync(this.storePath, 'utf-8');
         this.events = JSON.parse(data);
@@ -42,6 +46,7 @@ export class ChronologicalEngine {
   }
 
   private saveEvents() {
+    if (!this.storePath) return;
     const flashDir = path.dirname(this.storePath);
     if (!fs.existsSync(flashDir)) {
       fs.mkdirSync(flashDir, { recursive: true });

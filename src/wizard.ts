@@ -6,6 +6,7 @@ import { ChronologicalEngine } from './chronicle';
 import { VectorDatabase } from './vector';
 import { OrchestratorAgent } from './orchestrator';
 import { WorkspaceScanner } from './scanner';
+import { ConfigManager } from './config';
 
 export async function runWizard() {
   console.clear();
@@ -18,8 +19,40 @@ export async function runWizard() {
   ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
   `)));
   
-  console.log(pc.red('  The Semantic Time Machine for 2026\n'));
+  console.log(pc.red('  The Semantic Time Machine for 2026\\n'));
   
+  const configManager = new ConfigManager();
+  let config = configManager.getConfig();
+
+  if (!config) {
+    console.log(pc.yellow("  ⚠️ No AI Provider configured. Let's set up your LLM!"));
+    const setup = await prompts([
+      {
+        type: 'select',
+        name: 'provider',
+        message: pc.red('Choose your AI Provider'),
+        choices: [
+          { title: 'Google Gemini', value: 'gemini' },
+          { title: 'OpenAI', value: 'openai' }
+        ]
+      },
+      {
+        type: 'password',
+        name: 'apiKey',
+        message: pc.red('Enter your API Key (stored safely locally)')
+      }
+    ]);
+    
+    if (!setup.provider || !setup.apiKey) {
+      console.log(pc.dim('  Configuration cancelled.'));
+      process.exit(0);
+    }
+    
+    config = { provider: setup.provider, apiKey: setup.apiKey };
+    configManager.saveConfig(config);
+    console.log(pc.green('  ✔ AI Provider configured successfully!\\n'));
+  }
+
   const response = await prompts({
     type: 'text',
     name: 'query',
@@ -52,21 +85,19 @@ export async function runWizard() {
     spinner.succeed(pc.red(`Graph built. Indexed ${pc.bold(filesCount)} files and ${pc.bold(funcsCount)} structures.`));
     
     const agentSpinner = ora({
-      text: pc.red('Querying FLASH Reasoning Engine...'),
+      text: pc.red(`Querying FLASH Reasoning Engine via ${config.provider.toUpperCase()}...`),
       color: 'red'
     }).start();
 
-    // Dummy history data
-    chronicle.logTerminalCommand('npm test', 1, 'Error: ASTParser not found');
-    chronicle.logGitCommit('a1b2c3d', 'fix: export ASTParser', ['src/parser.ts']);
+    // Dummy vector data kept for prototype fallback
     await vector.addDocument('auth.ts', 'function loginUser() {}');
 
-    const agent = new OrchestratorAgent(indexer.graph, chronicle, vector);
+    const agent = new OrchestratorAgent(indexer.graph, chronicle, vector, configManager);
     const result = await agent.handleQuery(response.query);
     
     agentSpinner.stop();
-    console.log(pc.bold(pc.red('\n  🧠 FLASH Response:\n')));
-    console.log(pc.red(`  > ${result}\n`));
+    console.log(pc.bold(pc.red('\\n  🧠 FLASH Response:\\n')));
+    console.log(pc.red(`  > ${result}\\n`));
     
   } catch (error: any) {
     spinner.fail(pc.red(`Error: ${error.message}`));

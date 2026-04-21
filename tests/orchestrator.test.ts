@@ -15,7 +15,7 @@ describe('OrchestratorAgent', () => {
     indexer.indexFile('example.ts', 'function testFunc() {}');
     graph = indexer.graph;
     
-    chronicle = new ChronologicalEngine();
+    chronicle = new ChronologicalEngine(null);
     vector = new VectorDatabase();
     agent = new OrchestratorAgent(graph, chronicle, vector);
   });

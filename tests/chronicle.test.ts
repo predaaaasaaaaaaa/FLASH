@@ -2,7 +2,7 @@ import { ChronologicalEngine } from '../src/chronicle';
 
 describe('ChronologicalEngine', () => {
   it('should log terminal commands and identify failures', () => {
-    const engine = new ChronologicalEngine();
+    const engine = new ChronologicalEngine(null);
     
     engine.logTerminalCommand('npm start', 0, 'Server running');
     engine.logTerminalCommand('npm test', 1, 'Error: timeout');
@@ -16,7 +16,7 @@ describe('ChronologicalEngine', () => {
   });
 
   it('should correlate a subsequent git commit to a previous terminal failure', async () => {
-    const engine = new ChronologicalEngine();
+    const engine = new ChronologicalEngine(null);
     
     // Simulate terminal failure
     engine.logTerminalCommand('tsc --build', 1, 'TypeError: cannot find name');

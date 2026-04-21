@@ -1,16 +1,27 @@
 import { DependencyGraph } from './graph';
 import { ChronologicalEngine } from './chronicle';
 import { VectorDatabase } from './vector';
+import { LLMClient } from './llm';
+import { ConfigManager } from './config';
 
 export class OrchestratorAgent {
+  private llmClient: LLMClient | null = null;
+
   constructor(
     private graph: DependencyGraph,
     private chronicle: ChronologicalEngine,
-    private vectorDB: VectorDatabase
-  ) {}
+    private vectorDB: VectorDatabase,
+    configManager?: ConfigManager
+  ) {
+    const config = configManager?.getConfig();
+    if (config) {
+      this.llmClient = new LLMClient(config);
+    }
+  }
 
   async handleQuery(query: string): Promise<string> {
     const normalized = query.toLowerCase();
+    let deterministicContext = "";
 
     // 1. Time-Series Reasoning (The "Why")
     if (normalized.includes('why') || normalized.includes('error') || normalized.includes('fail')) {
@@ -19,15 +30,16 @@ export class OrchestratorAgent {
         const lastFail = failures[failures.length - 1];
         const fix = this.chronicle.correlateFixToFailure(lastFail.id);
         if (fix) {
-           return `Based on terminal history, you encountered error '${lastFail.payload.output}' and fixed it in commit '${fix.payload.hash}'.`;
+           deterministicContext = `Based on terminal history, you encountered error '${lastFail.payload.output}' and fixed it in commit '${fix.payload.hash}'.`;
+        } else {
+           deterministicContext = `You encountered error '${lastFail.payload.output}' but no fix has been correlated yet.`;
         }
-        return `You encountered error '${lastFail.payload.output}' but no fix has been correlated yet.`;
+      } else {
+         deterministicContext = "I have no historical context for this error.";
       }
-      return "I have no historical context for this error.";
     }
-
     // 2. Deterministic Graph Reasoning (The "Structure")
-    if (normalized.includes('where') || normalized.includes('call') || normalized.includes('contain') || normalized.includes('define')) {
+    else if (normalized.includes('where') || normalized.includes('call') || normalized.includes('contain') || normalized.includes('define')) {
        // Extract the likely target symbol from the query (rudimentary heuristic)
        const words = query.split(' ');
        let targetSymbol = '';
@@ -52,20 +64,27 @@ export class OrchestratorAgent {
                const edges = this.graph.getEdges().filter(e => e.targetId === funcNodes[0].id && e.type === 'contains');
                if (edges.length > 0) {
                    const fileNode = this.graph.getNodes().find(n => n.id === edges[0].sourceId);
-                   return `[Graph Reasoning] Structurally verified: '${targetSymbol}' is defined in '${fileNode?.name}'.`;
+                   deterministicContext = `[Graph Reasoning] Structurally verified: '${targetSymbol}' is defined in '${fileNode?.name}'.`;
                }
            }
        }
        
-       return "I could not find structural mappings in the Dependency Graph for your specific symbol.";
+       if (!deterministicContext) deterministicContext = "I could not find structural mappings in the Dependency Graph for your specific symbol.";
     }
-
     // 3. Semantic Fallback (The "General")
-    const docs = await this.vectorDB.search(query, 1);
-    if (docs.length > 0) {
-      return `Semantically relevant context found in '${docs[0].id}'.`;
+    else {
+      const docs = await this.vectorDB.search(query, 1);
+      if (docs.length > 0) {
+        deterministicContext = `Semantically relevant context found in '${docs[0].id}'.`;
+      } else {
+        deterministicContext = "I don't have enough deterministic context to answer this query without hallucinating.";
+      }
     }
 
-    return "I don't have enough deterministic context to answer this query without hallucinating.";
+    if (this.llmClient) {
+      return await this.llmClient.generateResponse(query, deterministicContext);
+    }
+
+    return deterministicContext; // Return raw context for tests or unconfigured users
   }
 }

@@ -7,6 +7,7 @@ import { runWizard } from './wizard';
 import { runUpdate } from './updater';
 import { runInterceptor } from './interceptor';
 import { runGitSync } from './git-sync';
+import { ConfigManager } from './config';
 import pc from 'picocolors';
 
 async function main() {
@@ -54,6 +55,7 @@ Examples:
   const indexer = new ProjectIndexer();
   const chronicle = new ChronologicalEngine();
   const vector = new VectorDatabase();
+  const configManager = new ConfigManager();
   
   console.log(pc.red('⚡ Scanning workspace and building Deterministic Graph...'));
   const scanner = new WorkspaceScanner(indexer);
@@ -65,7 +67,7 @@ Examples:
   // Dummy vector data kept for prototype fallback until Neural Search is built
   await vector.addDocument('auth.ts', 'function loginUser() {}');
 
-  const agent = new OrchestratorAgent(indexer.graph, chronicle, vector);
+  const agent = new OrchestratorAgent(indexer.graph, chronicle, vector, configManager);
   
   console.log(pc.red(`🧠 Querying FLASH Reasoning Engine:\\n`));
   const response = await agent.handleQuery(query);
