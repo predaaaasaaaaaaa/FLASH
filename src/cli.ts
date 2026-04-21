@@ -4,6 +4,7 @@ import { VectorDatabase } from './vector';
 import { OrchestratorAgent } from './orchestrator';
 import { WorkspaceScanner } from './scanner';
 import { runWizard } from './wizard';
+import { runUpdate } from './updater';
 import pc from 'picocolors';
 
 async function main() {
@@ -14,11 +15,17 @@ async function main() {
     process.exit(0);
   }
 
+  if (args[0] === 'update') {
+    await runUpdate();
+    process.exit(0);
+  }
+
   if (args[0] === '--help') {
     console.log(pc.red(`
 FLASH: The Semantic Time Machine
 Usage: flash <query>
        flash wizard
+       flash update
 
 Examples:
   flash "why did the build fail"
