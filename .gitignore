@@ -1,0 +1,22 @@
+# Python ignores
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# FLASH internal storage
+.flash/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
