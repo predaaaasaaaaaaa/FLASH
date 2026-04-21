@@ -28,16 +28,36 @@ export class OrchestratorAgent {
 
     // 2. Deterministic Graph Reasoning (The "Structure")
     if (normalized.includes('where') || normalized.includes('call') || normalized.includes('contain') || normalized.includes('define')) {
-       // Mock intent extraction mapping to graph query
-       const fileNodes = this.graph.getNodes().filter(n => n.type === 'file');
-       if (fileNodes.length > 0) {
-           const targetFile = fileNodes[0].id;
-           const functions = this.graph.getNodesContainedIn(targetFile);
-           if (functions.length > 0) {
-               return `File '${targetFile}' structurally contains functions: ${functions.map(f => f.name).join(', ')}.`;
+       // Extract the likely target symbol from the query (rudimentary heuristic)
+       const words = query.split(' ');
+       let targetSymbol = '';
+       // E.g., "where is ASTParser defined" -> finds ASTParser by looking for capitalized/camelCase words
+       for (const word of words) {
+           if (word.length > 2 && word.match(/^[A-Z][a-zA-Z]+$|^[a-z]+[A-Z][a-zA-Z]+$/)) {
+               targetSymbol = word;
+               break;
            }
        }
-       return "I could not find structural mappings in the Dependency Graph.";
+       if (!targetSymbol && words.length > 2) {
+           // Fallback: take the word before "defined"
+           const defineIdx = words.findIndex(w => w.toLowerCase().includes('define'));
+           if (defineIdx > 0) targetSymbol = words[defineIdx - 1];
+       }
+
+       if (targetSymbol) {
+           // Deterministically find the node in the Graph
+           const funcNodes = this.graph.getNodes().filter(n => n.type === 'function' && n.name === targetSymbol);
+           if (funcNodes.length > 0) {
+               // Find which file contains it via Graph Edges
+               const edges = this.graph.getEdges().filter(e => e.targetId === funcNodes[0].id && e.type === 'contains');
+               if (edges.length > 0) {
+                   const fileNode = this.graph.getNodes().find(n => n.id === edges[0].sourceId);
+                   return `[Graph Reasoning] Structurally verified: '${targetSymbol}' is defined in '${fileNode?.name}'.`;
+               }
+           }
+       }
+       
+       return "I could not find structural mappings in the Dependency Graph for your specific symbol.";
     }
 
     // 3. Semantic Fallback (The "General")
