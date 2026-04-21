@@ -22,7 +22,7 @@ If you've built AI Agents or used AI tools in 2026, you know the pain:
 
 LLMs are brilliant reasoners, but they suffer from **Information Poisoning** when fed chaotic, non-deterministic text.
 
-## The Solution (V1): "Tri-State Memory Vault"
+## The Solution: "Tri-State Memory Vault"
 
 **FLASH** is a framework that fundamentally changes how Agents remember and interact with codebases. 
 
@@ -32,7 +32,7 @@ When an Agent uses FLASH, it doesn't hallucinate architecture. It asks the Deter
 
 ---
 
-## ⚡️ For Beginners: Zero-Friction Insights
+## ⚡️ Zero-Friction Insights (The Wizard)
 
 You don't need to be a Python or TypeScript expert to get 100% reliable codebase context.
 
@@ -40,7 +40,7 @@ You don't need to be a Python or TypeScript expert to get 100% reliable codebase
 ```bash
 flash wizard
 ```
-The stunning, interactive red-themed CLI will map your entire project in seconds.
+The stunning, interactive red-themed CLI will map your entire project in seconds. On your first run, it will securely ask for your preferred AI Provider (Gemini or OpenAI) to power its conversational reasoning.
 
 2. **The Magic Output:**
 FLASH instantly reads your codebase, building a perfect AST Tree-Sitter graph and outputs exactly where things are, how they connect, and what terminal errors recently caused them to fail.
@@ -50,33 +50,20 @@ Run FLASH locally alongside your Agent. It acts as an active, un-hallucinating b
 
 ---
 
-## 🛠 For Pro Devs: Absolute Determinism
+## 🛠 Absolute Determinism (The Architecture)
 
 FLASH exposes a powerful architecture for building enterprise-grade, hallucination-free Agents.
 
 ### 1. Deterministic Core (Graph DB)
 Uses `tree-sitter` to parse code into Abstract Syntax Trees. It maintains a rigid, mathematical graph of all functions and classes. LLMs will *never* guess structure again.
 
-### 2. Chronological Engine (Time-Series)
-Intercepts and logs terminal outputs, build errors, and Git commit metadata along a strict timeline. It provides the "Why" behind code changes.
+### 2. Autonomous Chronological Engine (Time-Series)
+FLASH automatically links your actions to your code:
+*   **The Interceptor:** Run `flash run npm test` and FLASH silently captures terminal errors and memorizes them.
+*   **Git Auto-Correlation:** Run `flash sync-git` to instantly map your recent commits to the errors that caused them.
 
 ### 3. Orchestrator Agent
-Intelligently routes queries. If you ask "why", it queries the Timeline. If you ask "where", it queries the Graph. If it lacks context, it strictly refuses to answer rather than guessing.
-
----
-
-## 🚀 V2: Autonomous Self-Indexing & Interceptors (Coming Soon)
-
-FLASH V2 elevates the framework from an interactive CLI to an **Always-On Autonomous Observer**. 
-
-### 1. Terminal Interceptor
-FLASH will automatically intercept standard shell commands, capture their error outputs, and feed them into the Chronological Engine without you lifting a finger.
-
-### 2. Git Auto-Correlation
-FLASH will automatically analyze the `.git` folder so it can link historical error messages to the diffs of recent commits on the fly.
-
-### 3. Neural Semantic Search
-A lightweight local HuggingFace embedding model to replace standard deterministic vector mocking with real, context-aware neural semantic search.
+Intelligently routes queries. If you ask "why", it queries the Timeline. If you ask "where", it queries the Graph. It then injects this verified truth into a strict System Prompt so the LLM provides a perfectly accurate, conversational response. **If it lacks context, it strictly refuses to answer rather than guessing.**
 
 ---
 
@@ -88,9 +75,9 @@ npm install -g flash-memory
 ```
 
 **Zero-Friction Updates:**
-When a new version of FLASH drops, simply run:
+When a new version of FLASH drops, you don't even need npm. Simply run:
 ```bash
-npm update -g flash-memory
+flash update
 ```
 
 ---
