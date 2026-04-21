@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 export interface ChronoEvent {
   id: string;
   timestamp: number;
@@ -19,6 +22,32 @@ export interface GitCommitPayload {
 
 export class ChronologicalEngine {
   private events: ChronoEvent[] = [];
+  private storePath: string;
+
+  constructor() {
+    const flashDir = path.join(process.cwd(), '.flash');
+    this.storePath = path.join(flashDir, 'history.json');
+    this.loadEvents();
+  }
+
+  private loadEvents() {
+    if (fs.existsSync(this.storePath)) {
+      try {
+        const data = fs.readFileSync(this.storePath, 'utf-8');
+        this.events = JSON.parse(data);
+      } catch (e) {
+        this.events = [];
+      }
+    }
+  }
+
+  private saveEvents() {
+    const flashDir = path.dirname(this.storePath);
+    if (!fs.existsSync(flashDir)) {
+      fs.mkdirSync(flashDir, { recursive: true });
+    }
+    fs.writeFileSync(this.storePath, JSON.stringify(this.events, null, 2), 'utf-8');
+  }
 
   logTerminalCommand(command: string, exitCode: number, output: string) {
     this.events.push({
@@ -27,6 +56,7 @@ export class ChronologicalEngine {
       type: 'terminal_command',
       payload: { command, exitCode, output }
     });
+    this.saveEvents();
   }
 
   logGitCommit(hash: string, message: string, filesChanged: string[]) {
@@ -36,6 +66,7 @@ export class ChronologicalEngine {
       type: 'git_commit',
       payload: { hash, message, filesChanged }
     });
+    this.saveEvents();
   }
 
   getEvents(): ChronoEvent[] {
