@@ -18,8 +18,8 @@ export class ASTParser {
     const functionNames: string[] = [];
 
     const walk = (node: Parser.SyntaxNode) => {
-      // Standard functions and methods
-      if (node.type === 'function_declaration' || node.type === 'method_definition') {
+      // Standard functions, methods, AND classes
+      if (node.type === 'function_declaration' || node.type === 'method_definition' || node.type === 'class_declaration') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
           functionNames.push(nameNode.text);

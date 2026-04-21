@@ -4,7 +4,8 @@
   "description": "FLASH is a local-first, graph-based deterministic knowledge base designed to eliminate AI hallucination by providing a 100% reliable evolutionary memory of the project.",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc -p tsconfig.build.json"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +18,8 @@
     "tree-sitter-typescript": "^0.23.2",
     "ts-jest": "^29.4.9",
     "typescript": "^6.0.3"
+  },
+  "bin": {
+    "flash": "./bin/flash.js"
   }
 }
