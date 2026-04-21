@@ -6,7 +6,6 @@ export class ASTParser {
 
   constructor() {
     this.parser = new Parser();
-    // 'tree-sitter-typescript' exports two languages: 'typescript' and 'tsx'
     this.parser.setLanguage(TypeScript.typescript);
   }
 
@@ -19,12 +18,25 @@ export class ASTParser {
     const functionNames: string[] = [];
 
     const walk = (node: Parser.SyntaxNode) => {
+      // Standard functions and methods
       if (node.type === 'function_declaration' || node.type === 'method_definition') {
         const nameNode = node.childForFieldName('name');
         if (nameNode) {
           functionNames.push(nameNode.text);
         }
       }
+      
+      // Arrow functions or anonymous functions assigned to variables
+      if (node.type === 'variable_declarator') {
+        const valueNode = node.childForFieldName('value');
+        if (valueNode && (valueNode.type === 'arrow_function' || valueNode.type === 'function')) {
+          const nameNode = node.childForFieldName('name');
+          if (nameNode) {
+            functionNames.push(nameNode.text);
+          }
+        }
+      }
+
       for (const child of node.children) {
         walk(child);
       }

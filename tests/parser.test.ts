@@ -28,4 +28,12 @@ describe('ASTParser', () => {
     const names = parser.extractFunctionNames(code);
     expect(names).toContain('greet');
   });
+
+  it('should parse arrow functions assigned to const', () => {
+    const code = `
+      export const myArrowFunc = () => { return true; };
+    `;
+    const names = parser.extractFunctionNames(code);
+    expect(names).toContain('myArrowFunc');
+  });
 });
