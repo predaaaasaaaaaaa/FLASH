@@ -1,3 +1,4 @@
+import { ASTParser } from "./parser";
 import { ProjectIndexer } from './indexer';
 import { ChronologicalEngine } from './chronicle';
 import { VectorDatabase } from './vector';
@@ -7,6 +8,7 @@ import { runWizard } from './wizard';
 import { runUpdate } from './updater';
 import { runInterceptor } from './interceptor';
 import { runGitSync } from './git-sync';
+import { runVerify } from './verify';
 import { ConfigManager } from './config';
 import pc from 'picocolors';
 
@@ -21,6 +23,11 @@ async function main() {
   if (args[0] === 'update') {
     await runUpdate();
     process.exit(0);
+  }
+
+  if (args[0] === 'verify') {
+    runVerify();
+    return;
   }
 
   if (args[0] === 'run') {
@@ -40,6 +47,7 @@ Usage: flash <query>
        flash wizard
        flash update
        flash sync-git
+       flash verify
        flash run <command>
 
 Examples:

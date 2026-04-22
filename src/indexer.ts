@@ -6,7 +6,10 @@ export class ProjectIndexer {
   private parser = new ASTParser();
   public graph = new DependencyGraph();
 
-  public indexFile(filePath: string, content: string) {
+  public indexFile(absoluteFilePath: string, content: string) {
+    // Ensure the ID is a relative path from the project root for consistent graph queries
+    const filePath = path.relative(process.cwd(), absoluteFilePath);
+
     // Register the file itself
     this.graph.addNode({ id: filePath, type: 'file', name: filePath });
     
