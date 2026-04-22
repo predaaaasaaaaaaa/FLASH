@@ -29,8 +29,13 @@ export class OrchestratorAgent {
       if (failures.length > 0) {
         const lastFail = failures[failures.length - 1];
         const fix = this.chronicle.correlateFixToFailure(lastFail.id);
+        const cause = this.chronicle.findProbableCause(lastFail.id);
+        
         if (fix) {
-           deterministicContext = `Based on terminal history, you encountered error '${lastFail.payload.output}' and fixed it in commit '${fix.payload.hash}'.`;
+           const repoInfo = fix.repoSource ? ` in linked repository '${fix.repoSource}'` : '';
+           deterministicContext = `Based on terminal history, you encountered error '${lastFail.payload.output}' and fixed it in commit '${fix.payload.hash}'${repoInfo}.`;
+        } else if (cause) {
+           deterministicContext = `Based on terminal history, you encountered error '${lastFail.payload.output}'. The likely cause is a recent breaking API change in linked repository '${cause.repoSource}' at commit '${cause.payload.hash}'.`;
         } else {
            deterministicContext = `You encountered error '${lastFail.payload.output}' but no fix has been correlated yet.`;
         }

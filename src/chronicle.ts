@@ -6,6 +6,7 @@ export interface ChronoEvent {
   timestamp: number;
   type: 'terminal_command' | 'git_commit';
   payload: any;
+  repoSource?: string; // To track where it came from
 }
 
 export interface TerminalEventPayload {
@@ -21,7 +22,8 @@ export interface GitCommitPayload {
 }
 
 export class ChronologicalEngine {
-  private events: ChronoEvent[] = [];
+  private localEvents: ChronoEvent[] = [];
+  private linkedEvents: ChronoEvent[] = [];
   private storePath: string | null;
 
   constructor(storePath?: string | null) {
@@ -35,12 +37,40 @@ export class ChronologicalEngine {
   }
 
   private loadEvents() {
+    this.localEvents = [];
+    this.linkedEvents = [];
+    
+    // Load local events
     if (this.storePath && fs.existsSync(this.storePath)) {
       try {
         const data = fs.readFileSync(this.storePath, 'utf-8');
-        this.events = JSON.parse(data);
+        this.localEvents = JSON.parse(data);
       } catch (e) {
-        this.events = [];
+        this.localEvents = [];
+      }
+    }
+
+    // Load linked repo events
+    const flashDir = this.storePath ? path.dirname(this.storePath) : null;
+    if (flashDir) {
+      const linksPath = path.join(flashDir, 'links.json');
+      if (fs.existsSync(linksPath)) {
+        try {
+          const links: string[] = JSON.parse(fs.readFileSync(linksPath, 'utf-8'));
+          for (const link of links) {
+            // Link is expected to be a relative path from current project root
+            const linkedStorePath = path.resolve(flashDir, '..', link, '.flash', 'history.json');
+            if (fs.existsSync(linkedStorePath)) {
+              const data = fs.readFileSync(linkedStorePath, 'utf-8');
+              let events: ChronoEvent[] = JSON.parse(data);
+              // Tag them with the repo source
+              events = events.map(e => ({ ...e, repoSource: link }));
+              this.linkedEvents = this.linkedEvents.concat(events);
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to load linked repositories:', e);
+        }
       }
     }
   }
@@ -51,11 +81,11 @@ export class ChronologicalEngine {
     if (!fs.existsSync(flashDir)) {
       fs.mkdirSync(flashDir, { recursive: true });
     }
-    fs.writeFileSync(this.storePath, JSON.stringify(this.events, null, 2), 'utf-8');
+    fs.writeFileSync(this.storePath, JSON.stringify(this.localEvents, null, 2), 'utf-8');
   }
 
   logTerminalCommand(command: string, exitCode: number, output: string) {
-    this.events.push({
+    this.localEvents.push({
       id: Date.now().toString() + Math.random().toString(),
       timestamp: Date.now(),
       type: 'terminal_command',
@@ -65,7 +95,7 @@ export class ChronologicalEngine {
   }
 
   logGitCommit(hash: string, message: string, filesChanged: string[]) {
-    this.events.push({
+    this.localEvents.push({
       id: hash,
       timestamp: Date.now(),
       type: 'git_commit',
@@ -75,20 +105,31 @@ export class ChronologicalEngine {
   }
 
   getEvents(): ChronoEvent[] {
-    // Return events sorted chronologically
-    return this.events.sort((a, b) => a.timestamp - b.timestamp);
+    const allEvents = this.localEvents.concat(this.linkedEvents);
+    return allEvents.sort((a, b) => a.timestamp - b.timestamp);
   }
 
   getFailedCommands(): ChronoEvent[] {
-    return this.events.filter(e => e.type === 'terminal_command' && e.payload.exitCode !== 0);
+    return this.getEvents().filter(e => e.type === 'terminal_command' && e.payload.exitCode !== 0);
   }
 
-  // Correlates a failure to the nearest subsequent commit that might have fixed it
+  // Correlates a failure to the nearest subsequent commit that might have fixed it (local or linked)
   correlateFixToFailure(failedCommandId: string): ChronoEvent | null {
-    const failure = this.events.find(e => e.id === failedCommandId);
+    const allEvents = this.getEvents();
+    const failure = allEvents.find(e => e.id === failedCommandId);
     if (!failure) return null;
 
-    // Find the first git commit that happened AFTER this failure
-    return this.events.find(e => e.type === 'git_commit' && e.timestamp > failure.timestamp) || null;
+    return allEvents.find(e => e.type === 'git_commit' && e.timestamp > failure.timestamp) || null;
+  }
+
+  // Correlates a failure to a preceding commit in a linked repo that likely caused it
+  findProbableCause(failedCommandId: string): ChronoEvent | null {
+    const allEvents = this.getEvents();
+    const failure = allEvents.find(e => e.id === failedCommandId);
+    if (!failure) return null;
+
+    // Look backward for the most recent linked commit
+    const reversedEvents = [...allEvents].reverse();
+    return reversedEvents.find(e => e.type === 'git_commit' && e.repoSource && e.timestamp < failure.timestamp) || null;
   }
 }
