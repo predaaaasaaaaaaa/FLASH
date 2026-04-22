@@ -4,7 +4,7 @@
   "description": "FLASH is a local-first, graph-based deterministic knowledge base designed to eliminate AI hallucination by providing a 100% reliable evolutionary memory of the project.",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "build": "tsc -p tsconfig.build.json"
   },
   "keywords": [],
