@@ -39,10 +39,23 @@ describe('OrchestratorAgent', () => {
     expect(response).toContain("testFunc");
   });
 
-  it('should fallback to the Vector DB for general queries', async () => {
-    await vector.addDocument('auth.ts', 'function login() {}');
-    const response = await agent.handleQuery('how do I authenticate user login');
-    expect(response).toContain('auth.ts');
+  it('should use Graph-RAG for semantic queries, extracting exact AST bounds', async () => {
+    // Vector search conceptually maps 'login' to 'authenticateUser'
+    await vector.addDocument('example.ts:authenticateUser', 'function authenticateUser() { return true; }');
+    
+    // Inject the corresponding AST node into the graph
+    graph.addNode({ 
+      id: 'example.ts:authenticateUser', 
+      type: 'function', 
+      name: 'authenticateUser',
+      content: 'function authenticateUser() { return true; }'
+    });
+
+    const response = await agent.handleQuery('how do I log in');
+    
+    // It should explicitly find the structural code and return it, not just the ID
+    expect(response).toContain('example.ts:authenticateUser');
+    expect(response).toContain('function authenticateUser() { return true; }');
   });
 
   it('should strictly refuse to guess if context is missing', async () => {

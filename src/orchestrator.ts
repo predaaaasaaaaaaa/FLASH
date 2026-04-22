@@ -75,7 +75,14 @@ export class OrchestratorAgent {
     else {
       const docs = await this.vectorDB.search(query, 1);
       if (docs.length > 0) {
-        deterministicContext = `Semantically relevant context found in '${docs[0].id}'.`;
+        const matchedId = docs[0].id;
+        const graphNode = this.graph.getNodes().find(n => n.id === matchedId);
+        
+        if (graphNode && graphNode.content) {
+          deterministicContext = `[Graph-RAG Semantic Match] Found relevant structure '${matchedId}':\n${graphNode.content}`;
+        } else {
+          deterministicContext = `[Semantic Match] Found relevant context in '${matchedId}', but structural body was missing in Graph.`;
+        }
       } else {
         deterministicContext = "I don't have enough deterministic context to answer this query without hallucinating.";
       }

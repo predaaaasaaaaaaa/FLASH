@@ -2,6 +2,7 @@ export interface GraphNode {
   id: string; // unique identifier, e.g., 'src/parser.ts:ASTParser'
   type: 'file' | 'class' | 'function' | 'variable';
   name: string;
+  content?: string; // Optional precise structural bounds for Graph-RAG
 }
 
 export interface GraphEdge {
