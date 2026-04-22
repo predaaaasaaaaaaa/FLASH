@@ -21,5 +21,17 @@ export class ProjectIndexer {
        this.graph.addNode({ id: funcId, type: 'function', name: funcName });
        this.graph.addEdge({ sourceId: filePath, targetId: funcId, type: 'contains' });
     }
+
+    // Extract imports and link them as 'imports' edges from the file
+    const imports = this.parser.extractImports(content);
+    for (const importPath of imports) {
+       // Normalize paths roughly for the prototype by resolving against the file's dir
+       let resolvedTarget = importPath;
+       if (importPath.startsWith('.')) {
+          resolvedTarget = path.join(path.dirname(filePath), importPath);
+       }
+       // We create an edge from the file to the resolved module path
+       this.graph.addEdge({ sourceId: filePath, targetId: resolvedTarget, type: 'imports' });
+    }
   }
 }

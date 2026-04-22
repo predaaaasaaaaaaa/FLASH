@@ -86,6 +86,31 @@ export class ASTParser {
     return functionNames;
   }
 
+  public extractImports(sourceCode: string): string[] {
+    const tree = this.parse(sourceCode);
+    const imports: string[] = [];
+
+    const walk = (node: Parser.SyntaxNode) => {
+      // Basic support for TS/JS import extraction
+      if (node.type === 'import_statement') {
+        // The source path is usually in a string child
+        for (const child of node.children) {
+          if (child.type === 'string' || child.type === 'string_fragment') {
+            // Remove quotes
+            let text = child.text.replace(/['"]/g, '');
+            imports.push(text);
+          }
+        }
+      }
+      for (const child of node.children) {
+        walk(child);
+      }
+    };
+
+    walk(tree.rootNode);
+    return imports;
+  }
+
   private findNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
     for (const child of node.children) {
       if (child.type === 'identifier' || child.type === 'type_identifier') {
