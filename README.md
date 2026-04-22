@@ -1,7 +1,7 @@
 <div align="center">
   <img src="docs/cli-screenshot.svg" alt="FLASH CLI Demo" width="800">
   <br/>
-  <h1>⚡ FLASH</h1>
+  <h1>⚡ FLASH V2</h1>
   <p><b>The Deterministic Memory Engine for Autonomous AI Agents</b></p>
   <p>
     <i>Stop relying on probabilistic RAG. Give your Agent mathematical certainty about your codebase.</i>
@@ -32,32 +32,27 @@ flash-memory/
 │   ├── cli.ts             # Main CLI routing and command registration
 │   ├── wizard.ts          # The interactive, red-themed terminal UI
 │   ├── orchestrator.ts    # The Synthesizer: Routes queries and formats LLM prompts
-│   ├── parser.ts          # Deterministic Core: Tree-sitter AST parser
+│   ├── parser.ts          # Universal Core: Multi-language Tree-Sitter registry
 │   ├── graph.ts           # Deterministic Core: Mathematical dependency graph
-│   ├── chronicle.ts       # Chronological Engine: Time-series database for errors/commits
+│   ├── rules.ts           # Architectural Fitness Functions: Enforces dependency boundaries
+│   ├── fix.ts             # Closed-Loop Auto-Fixer: AI resolution with AST Sandbox verification
+│   ├── sandbox.ts         # AST Sandbox: Verifies proposed code before applying
+│   ├── chronicle.ts       # Telepathic Timeline: Tracks local and linked cross-repo events
 │   ├── interceptor.ts     # Terminal Interceptor: Securely catches stdout/stderr
 │   ├── git-sync.ts        # Git Auto-Correlation: Maps commits to terminal errors
-│   ├── vector.ts          # Semantic Layer: Local Vector database
+│   ├── vector.ts          # Graph-RAG Semantic Layer: Local Transformers.js embeddings
 │   ├── scanner.ts         # Live Workspace Scanner: Recursively indexes the project
 │   ├── config.ts          # Secure local configuration manager (~/.flash_config.json)
 │   └── llm.ts             # Zero-dependency LLM Client (Gemini & OpenAI)
 ├── tests/                 # 100% Test-Driven isolated test suites
-│   ├── chronicle.test.ts
-│   ├── graph.test.ts
-│   ├── orchestrator.test.ts
-│   ├── parser.test.ts
-│   ├── scanner.test.ts
-│   └── vector.test.ts
-├── docs/                  # Assets and screenshots
-├── tsconfig.build.json    # Strict production compilation config
-└── package.json           # Node dependencies and scripts
+└── docs/                  # Assets and screenshots
 ```
 
-### The Three Pillars
+### The Three Pillars of V2
 
-1. **The Deterministic Core (Graph):** Uses `tree-sitter` to parse your TypeScript/JavaScript files. It knows *exactly* where a class is defined and what functions it contains. No guessing.
-2. **The Chronological Engine (Timeline):** Tracks the lifecycle of bugs. It intercepts terminal command failures and automatically correlates them to the Git commits that fix them.
-3. **The Orchestrator Agent (Synthesizer):** Intelligently routes queries to the correct database, extracts the hard facts, and injects them into a strict prompt for your local or cloud LLM to explain.
+1. **The Universal Core (Multi-Language Graph):** Dynamically loads `tree-sitter` grammars for TypeScript, Python, Go, Rust, and Java. It knows *exactly* where a class is defined across your polyglot microservices.
+2. **The Telepathic Engine (Timeline):** Tracks the lifecycle of bugs. It intercepts terminal failures and correlates them to Git commits. **V2 Telepathy** links multiple repositories, instantly finding API contract breaches when a dependency changes upstream.
+3. **Local Graph-RAG (Synthesizer):** Uses local HuggingFace embeddings (`all-MiniLM-L6-v2`) via `transformers.js` to run semantic search *purely locally*. It searches semantics, but uses the Deterministic Graph to extract mathematically proven AST bounds.
 
 ---
 
@@ -93,26 +88,31 @@ For a guided, visual experience, launch the main interface. FLASH will scan your
 
 ```bash
 flash wizard
-# "Where is the WorkspaceScanner defined?"
-# "How does the Orchestrator handle errors?"
 ```
 
-### 2. The Terminal Interceptor
-Stop copy-pasting errors to ChatGPT. Run your standard dev commands through the FLASH interceptor. If the command fails, FLASH silently captures the `stdout`/`stderr` and commits it to memory.
+### 2. The Closed-Loop Auto-Fixer
+When an error occurs, simply run `flash fix`. FLASH will query the LLM for a solution, apply it in a secret AST memory sandbox, run `tree-sitter` to verify it mathematically parses without syntax errors, and *only then* write the fix to your disk.
 
 ```bash
-flash run npm test
+flash fix
+```
+
+### 3. Architectural Fitness Functions
+Define strict dependency boundaries in `.flash_rules.json` (e.g., "UI cannot import DB"). Run `flash verify` in your CI/CD pipeline to mathematically block architectural regressions without heavy compilation.
+
+```bash
+flash verify
+```
+
+### 4. The Terminal Interceptor & Git Auto-Correlation
+Stop copy-pasting errors. Run your standard dev commands through the FLASH interceptor. If it fails, FLASH memorizes it. Run `flash sync-git` to map recent commits to the timeline.
+
+```bash
 flash run npx tsc --noEmit
-```
-
-### 3. Git Auto-Correlation
-Sync your repository's history into FLASH. It will automatically read recent commits and link them to the terminal errors that preceded them, creating a complete "Cause and Effect" timeline.
-
-```bash
 flash sync-git
 ```
 
-### 4. Zero-Friction Upgrades
+### 5. Zero-Friction Upgrades
 Stay up to date with the latest features without fighting package managers.
 
 ```bash
