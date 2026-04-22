@@ -3,8 +3,10 @@ import * as path from 'path';
 import * as os from 'os';
 
 export interface FlashConfig {
-  provider: 'gemini' | 'openai';
-  apiKey: string;
+  provider: 'gemini' | 'openai' | 'ollama';
+  apiKey?: string;
+  baseUrl?: string; // e.g., http://localhost:11434 for Ollama
+  model?: string;   // e.g., llama3, mistral for Ollama
 }
 
 export class ConfigManager {

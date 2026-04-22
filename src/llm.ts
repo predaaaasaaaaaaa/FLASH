@@ -4,6 +4,9 @@ export class LLMClient {
   constructor(private config: FlashConfig) {}
 
   async generateResponse(query: string, context: string): Promise<string> {
+    if (process.env.MOCK_LLM_RETURN_CONTEXT) {
+      return context;
+    }
     if (process.env.MOCK_LLM_RESPONSE) {
       return process.env.MOCK_LLM_RESPONSE;
     }
@@ -18,9 +21,40 @@ ${context}
 
     if (this.config.provider === 'gemini') {
       return this.callGemini(query, systemPrompt);
+    } else if (this.config.provider === 'ollama') {
+      return this.callOllama(query, systemPrompt);
     } else {
       return this.callOpenAI(query, systemPrompt);
     }
+  }
+
+  private async callOllama(query: string, systemPrompt: string): Promise<string> {
+    const baseUrl = this.config.baseUrl || 'http://localhost:11434';
+    const model = this.config.model || 'llama3';
+    const url = `${baseUrl}/api/chat`;
+    
+    const payload = {
+      model: model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query }
+      ],
+      stream: false
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Ollama API Error: ${err}`);
+    }
+
+    const data = await res.json();
+    return data.message?.content || "No response generated.";
   }
 
   private async callGemini(query: string, systemPrompt: string): Promise<string> {

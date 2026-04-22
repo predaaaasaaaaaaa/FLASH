@@ -26,29 +26,63 @@ export async function runWizard() {
 
   if (!config) {
     console.log(pc.yellow("  ⚠️ No AI Provider configured. Let's set up your LLM!"));
-    const setup = await prompts([
+    const setupProvider = await prompts([
       {
         type: 'select',
         name: 'provider',
         message: pc.red('Choose your AI Provider'),
         choices: [
           { title: 'Google Gemini', value: 'gemini' },
-          { title: 'OpenAI', value: 'openai' }
+          { title: 'OpenAI', value: 'openai' },
+          { title: 'Ollama (Local Models)', value: 'ollama' }
         ]
-      },
-      {
-        type: 'password',
-        name: 'apiKey',
-        message: pc.red('Enter your API Key (stored safely locally)')
       }
     ]);
     
-    if (!setup.provider || !setup.apiKey) {
+    if (!setupProvider.provider) {
       console.log(pc.dim('  Configuration cancelled.'));
       process.exit(0);
     }
     
-    config = { provider: setup.provider, apiKey: setup.apiKey };
+    if (setupProvider.provider === 'ollama') {
+      const setupOllama = await prompts([
+        {
+          type: 'text',
+          name: 'baseUrl',
+          message: pc.red('Enter Ollama Base URL'),
+          initial: 'http://localhost:11434'
+        },
+        {
+          type: 'text',
+          name: 'model',
+          message: pc.red('Enter Ollama Model name'),
+          initial: 'llama3'
+        }
+      ]);
+      
+      if (!setupOllama.baseUrl || !setupOllama.model) {
+        console.log(pc.dim('  Configuration cancelled.'));
+        process.exit(0);
+      }
+      
+      config = { provider: 'ollama', baseUrl: setupOllama.baseUrl, model: setupOllama.model };
+    } else {
+      const setupKey = await prompts([
+        {
+          type: 'password',
+          name: 'apiKey',
+          message: pc.red('Enter your API Key (stored safely locally)')
+        }
+      ]);
+      
+      if (!setupKey.apiKey) {
+        console.log(pc.dim('  Configuration cancelled.'));
+        process.exit(0);
+      }
+      
+      config = { provider: setupProvider.provider, apiKey: setupKey.apiKey };
+    }
+
     configManager.saveConfig(config);
     console.log(pc.green('  ✔ AI Provider configured successfully!\\n'));
   }
