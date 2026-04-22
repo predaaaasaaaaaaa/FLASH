@@ -5,7 +5,7 @@ import { ProjectIndexer } from './indexer';
 export class WorkspaceScanner {
   constructor(private indexer: ProjectIndexer) {}
 
-  public scanDirectory(dirPath: string, allowedExtensions: string[] = ['.ts', '.js']) {
+  public scanDirectory(dirPath: string, allowedExtensions: string[] = ['.ts', '.js', '.tsx', '.jsx', '.py', '.go', '.rs', '.java']) {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
     for (const entry of entries) {
