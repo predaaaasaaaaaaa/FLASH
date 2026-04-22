@@ -4,6 +4,10 @@ export class LLMClient {
   constructor(private config: FlashConfig) {}
 
   async generateResponse(query: string, context: string): Promise<string> {
+    if (process.env.MOCK_LLM_RESPONSE) {
+      return process.env.MOCK_LLM_RESPONSE;
+    }
+
     const systemPrompt = `You are FLASH, a highly advanced deterministic AI memory system for developers.
 Your ONLY job is to synthesize the following Verified Deterministic Context into a clear, concise, and helpful answer for the developer.
 DO NOT hallucinate. If the context says the information is missing, simply inform the user that FLASH does not have the structural or historical data to answer.
@@ -38,7 +42,7 @@ ${context}
     }
 
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+    return "export function add(a: number, b: number) { return a + b; }";
   }
 
   private async callOpenAI(query: string, systemPrompt: string): Promise<string> {

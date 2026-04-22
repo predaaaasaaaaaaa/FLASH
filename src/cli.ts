@@ -9,6 +9,7 @@ import { runUpdate } from './updater';
 import { runInterceptor } from './interceptor';
 import { runGitSync } from './git-sync';
 import { runVerify } from './verify';
+import { runFix } from './fix';
 import { ConfigManager } from './config';
 import pc from 'picocolors';
 
@@ -30,6 +31,11 @@ async function main() {
     return;
   }
 
+  if (args[0] === 'fix') {
+    await runFix();
+    return;
+  }
+
   if (args[0] === 'run') {
     runInterceptor(args.slice(1));
     return; // Interceptor will process.exit
@@ -48,12 +54,13 @@ Usage: flash <query>
        flash update
        flash sync-git
        flash verify
+       flash fix
        flash run <command>
 
 Examples:
   flash run npm test
   flash "why did the build fail"
-  flash "where is the ASTParser defined"
+  flash fix
     `));
     process.exit(0);
   }
