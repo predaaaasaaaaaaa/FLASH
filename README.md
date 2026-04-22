@@ -75,7 +75,7 @@ cd my-project/
 flash wizard
 ```
 
-On the first run, the interactive CLI will ask you to select your preferred AI provider (Google Gemini or OpenAI) and securely store your API key in `~/.flash_config.json`.
+On the first run, the interactive CLI will ask you to select your preferred AI provider (Google Gemini, OpenAI, or Ollama for 100% local models) and securely store your API key or Base URL in `~/.flash_config.json`.
 
 ---
 
