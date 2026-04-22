@@ -20,28 +20,37 @@ When an AI Agent relies on standard Vector Retrieval (RAG), it guesses how your 
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Project Structure
 
-FLASH operates as a localized "Tri-State Memory Vault" that runs entirely on your machine.
+FLASH is built with strict separation of concerns, ensuring that the "Tri-State Memory Vault" is deterministic, testable, and reliable.
 
-```mermaid
-graph TD
-    A[User / AI Agent Query] --> B(Orchestrator Agent)
-    
-    B -->|The 'Where'| C[Deterministic Core]
-    B -->|The 'Why'| D[Chronological Engine]
-    B -->|The 'What'| E[Semantic Layer]
-    
-    C -->|Tree-Sitter AST| F[(Local Graph DB)]
-    D -->|Terminal + Git Logs| G[(Time-Series DB)]
-    E -->|Embeddings| H[(Vector DB)]
-    
-    F --> I[Synthesized Context]
-    G --> I
-    H --> I
-    
-    I -->|System Prompt| J{LLM Provider}
-    J -->|Conversational Output| K[Developer]
+```text
+flash-memory/
+├── bin/
+│   └── flash.js           # The executable CLI entrypoint
+├── src/
+│   ├── cli.ts             # Main CLI routing and command registration
+│   ├── wizard.ts          # The interactive, red-themed terminal UI
+│   ├── orchestrator.ts    # The Synthesizer: Routes queries and formats LLM prompts
+│   ├── parser.ts          # Deterministic Core: Tree-sitter AST parser
+│   ├── graph.ts           # Deterministic Core: Mathematical dependency graph
+│   ├── chronicle.ts       # Chronological Engine: Time-series database for errors/commits
+│   ├── interceptor.ts     # Terminal Interceptor: Securely catches stdout/stderr
+│   ├── git-sync.ts        # Git Auto-Correlation: Maps commits to terminal errors
+│   ├── vector.ts          # Semantic Layer: Local Vector database
+│   ├── scanner.ts         # Live Workspace Scanner: Recursively indexes the project
+│   ├── config.ts          # Secure local configuration manager (~/.flash_config.json)
+│   └── llm.ts             # Zero-dependency LLM Client (Gemini & OpenAI)
+├── tests/                 # 100% Test-Driven isolated test suites
+│   ├── chronicle.test.ts
+│   ├── graph.test.ts
+│   ├── orchestrator.test.ts
+│   ├── parser.test.ts
+│   ├── scanner.test.ts
+│   └── vector.test.ts
+├── docs/                  # Assets and screenshots
+├── tsconfig.build.json    # Strict production compilation config
+└── package.json           # Node dependencies and scripts
 ```
 
 ### The Three Pillars
